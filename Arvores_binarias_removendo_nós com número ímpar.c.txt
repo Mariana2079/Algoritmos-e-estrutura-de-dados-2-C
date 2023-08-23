@@ -1,0 +1,154 @@
+/*
+Implemente uma função que receba uma árvore binária de busca e remova todos os nós ímpares.
+
+Input Format
+Na primeira linha deve ser lido o número inteiro N, que é referente à quantidade de nós da árvore binária de busca. 
+Em seguida, em cada linha deve ser lido um número inteiro para ser inserido como nó na árvore (fazer isso até que N números sejam lidos).
+
+Constraints
+Usar o TAD de árvores binárias disponilibilizado em .
+
+Output Format
+Após a remoção, imprimir o valor da chave de cada nó em uma única linha considerando o percurso pré-ordem.
+
+Sample Input 0
+10
+41
+20
+11
+29
+32
+65
+50
+91
+72
+99
+
+Sample Output 0
+50 20 32 72
+
+Sample Input 1
+12
+28
+15
+13
+18
+10
+12
+50
+35
+42
+65
+53
+70
+
+Sample Output 1
+28 18 10 12 50 42 70
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node Node;
+
+struct Node {
+    int item; //chave
+    struct Node* left;
+    struct Node* right;
+};
+
+ Node* criar_node(int item) {
+    Node* tree = ( Node*) malloc(sizeof(Node));
+    tree->item = item;
+    tree->left = NULL;
+    tree->right = NULL;
+    return tree;
+}
+
+ Node* inserir_node(Node* tree, int item) {
+    if (tree == NULL) {
+        return criar_node(item);
+    }
+    if (item < tree->item) {
+        tree->left = inserir_node(tree->left, item);
+    }
+    else if (item > tree->item) {
+        tree->right = inserir_node(tree->right, item);
+    }
+    return tree;
+}
+
+ Node* remover_nodes_impares( Node* tree) {
+    if (tree == NULL) {
+        return NULL;
+    }
+    // Remove os nodes impares da subarvore esquerda.
+    tree->left = remover_nodes_impares(tree->left);
+    // Remove os nodes impares da subarvore direita.
+    tree->right = remover_nodes_impares(tree->right);
+     
+    if (tree->item & 1) { 
+        if (tree->left == NULL && tree->right == NULL) {
+            free(tree);
+            return NULL;
+        } else if (tree->right == NULL) {
+            Node* temp = tree->left;
+            free(tree);
+            return temp;
+        } else if (tree->right->left == NULL) {
+            tree->right->left = tree->left;
+            free(tree);
+            return tree->right;
+        } else {
+            Node* min_node_parent = tree->right;
+            while (min_node_parent->left->left != NULL) {
+                min_node_parent = min_node_parent->left;
+            }
+            Node* min_node = min_node_parent->left;
+            tree->item = min_node->item;
+            min_node_parent->left = min_node->right;
+            free(min_node);
+        }
+        
+    }//else{}
+    return tree;
+
+}
+
+
+void imprimirPrefix(Node* tree){
+    if (tree == NULL) {
+        return;
+    }else{
+        printf("%d ", tree->item);
+        imprimirPrefix(tree->left);
+        imprimirPrefix(tree->right);
+    }
+}
+
+void liberar_arvore(Node* tree){
+    if (tree != NULL){
+        liberar_arvore(tree->left);
+        liberar_arvore(tree->right);
+        free(tree);
+    }
+}
+int main() {
+    int n, item;
+    Node* tree = NULL;
+    
+    scanf("%d", &n);
+    
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &item);
+        tree = inserir_node(tree, item);
+    }
+    
+    tree = remover_nodes_impares(tree);
+    imprimirPrefix(tree);
+    printf("\n");
+    liberar_arvore(tree);
+    
+    return 0;
+}
+
